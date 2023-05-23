@@ -22,8 +22,18 @@ b.	Into this folder we will now export the class Sample.DBExpansion.Test.Capture
 
 c.    In terminal set the global ^UnitTestRoot = “<folder that the Unit Tests folder is in>”. Per the example above, it would be (note that you must be in the same namespace where you imported the package) C:\ (**note that it is not** “C:\Unit Tests” !)
 
-      ![Terminal1](https://github.com/Ari-Glikman/DataCollection/assets/73805987/ba74e40b-9755-461b-9d31-189bcbed9a09)
-
+ ```
+set ^UnitTestRoot = "C:\"
+```
 
       
-d.    
+d.    Finally, we run the Unit Tests. Do this by running the following line of code from the terminal:
+      
+ ```
+do ##class(Sample.DBExpansion.Test.TestManager).RunTest("Unit Tests", "/noload/nodelete")
+```
+We are essentially telling the program to run all tests that are found in the folder C:\Unit Tests. At the moment we only have one file there, the one created in 3.b.
+
+The output should be as follows
+
+     

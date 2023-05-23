@@ -18,7 +18,7 @@ a.	Create a folder called Unit Tests that can be read by your InterSystems Termi
 b.	Into this folder we will now export the class Sample.DBExpansion.Test.CaptureTest as an xml file.
 
 
-![Recording 2023-05-10 at 6 41 30 PM](https://github.com/Ari-Glikman/DataCollection/assets/73805987/87d99d04-a1dd-47b0-8a89-8b9cba45ecbc | width = 200)
+![Recording 2023-05-10 at 6 41 30 PM](https://github.com/Ari-Glikman/DataCollection/assets/73805987/87d99d04-a1dd-47b0-8a89-8b9cba45ecbc)
 
 c.    In terminal set the global ^UnitTestRoot = “<folder that the Unit Tests folder is in>”. Per the example above, it would be (note that you must be in the same namespace where you imported the package) C:\ (**note that it is not** “C:\Unit Tests” !)
 
@@ -36,7 +36,7 @@ We are essentially telling the program to run all tests that are found in the fo
 
 The output should be as follows
       
-![UnitTestOutput](https://github.com/Ari-Glikman/DataCollection/assets/73805987/163465c4-7e69-483e-861c-d47c1f2fc83e | width = 200)
+![UnitTestOutput](https://github.com/Ari-Glikman/DataCollection/assets/73805987/163465c4-7e69-483e-861c-d47c1f2fc83e)
 
       
 If the unit tests do not pass, then the program is not ready to run. Do not continue with the next steps until you get output that says all tests passed.

@@ -12,9 +12,18 @@ This is a step-by-step instruction guide for creating a task to collect data abo
 If a Sample package is already present on your server, then you should still see the new subpackages along with any other folders that were previously there.
 
 3)	It is now time to run unit testing to make sure everything works correctly. 
-a.	Create a folder called Unit Test that can be read by your InterSystems Terminal, for example, since I have a local installation, I will just make a folder in my C drive.
+a.	Create a folder called Unit Tests that can be read by your InterSystems Terminal, for example, since I have a local installation, I will just make a folder in my C drive.
   ![image](https://github.com/Ari-Glikman/DataCollection/assets/73805987/3b2e11d5-6304-4e07-baa7-7ca2460f593c)
 
 b.	Into this folder we will now export the class Sample.DBExpansion.Test.CaptureTest as an xml file.
 
 
+![Recording 2023-05-10 at 6 41 30 PM](https://github.com/Ari-Glikman/DataCollection/assets/73805987/87d99d04-a1dd-47b0-8a89-8b9cba45ecbc)
+
+c.    In terminal set the global ^UnitTestRoot = “<folder that the Unit Tests folder is in>”. Per the example above, it would be (note that you must be in the same namespace where you imported the package) C:\ (**note that it is not** “C:\Unit Tests” !)
+
+      ![Terminal1](https://github.com/Ari-Glikman/DataCollection/assets/73805987/ba74e40b-9755-461b-9d31-189bcbed9a09)
+
+
+      
+d.    

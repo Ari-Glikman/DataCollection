@@ -35,5 +35,7 @@ do ##class(Sample.DBExpansion.Test.TestManager).RunTest("Unit Tests", "/noload/n
 We are essentially telling the program to run all tests that are found in the folder C:\Unit Tests. At the moment we only have one file there, the one created in 3.b.
 
 The output should be as follows
+      
+ ![UnitTestOutput](https://github.com/Ari-Glikman/DataCollection/assets/73805987/3de80727-485a-4671-b716-7a043daf36f3)
 
      

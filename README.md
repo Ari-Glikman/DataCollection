@@ -52,7 +52,8 @@ a. Open the management portal and go to System Operation > Task Manager > New Ta
       
       
 You will now be given several fields to fill as to what task you want to create. You will choose the namespace in which you imported the package and give the task a name. A description should be given for future reference. Ideally leave the fast checkbox unselected, this means that the task will run slower but will collect more complete data. If this will take too long to run (depends on how big the database and its globals are) then perhaps it is best to tick here and opt for a faster task. The HowManyGlobals indicates how many globals should be collected: -1 indicates all globals and is the recommended option. Select Next, choose how often the task should run, and click finish.     
-      ![Uploading Recording 2023-05-10 at 7.10.32 PM.gif…]()
+      
+![Recording 2023-05-10 at 7 10 32 PM](https://github.com/Ari-Glikman/DataCollection/assets/73805987/c57c9d67-98bb-40ae-bbae-d65038922e02)
 
 b. You will now be prompted with the Task Schedule where you can see when all tasks, including the newly created one are scheduled to run. If you additionally wish to run it now select Run on the right hand side.
 
@@ -71,6 +72,7 @@ This table is going to store data about the database itself. We refer to this as
 
 This will contain the information regarding the globals in the database. Note that if there is a class name that is associated with the global, we will see it here along with their size. Lastly, note that the MetaDataID field corresponds to the ID field of the Sample_DBExpansion_Data.DBAnalysisInfo table. This means to say that at the time the database information was captured, its corresponding global information was captured and they share this identifying number (these are the globals in the database at that time). It is a way to see how the globals in a database, and the database itself evolve through time.
       
+![GLOBALTABLE](https://github.com/Ari-Glikman/DataCollection/assets/73805987/18880e1d-3f3d-4f22-9f36-f88b46a666a5)
 
 
 

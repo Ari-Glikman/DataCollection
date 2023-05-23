@@ -43,50 +43,40 @@ If the unit tests do not pass, then the program is not ready to run. Do not cont
       
 
 4) Congrats! It is not time to build the task. To do this:
-      a. Open the management portal and go to System Operation > Task Manager > New Task 
+      
+a. Open the management portal and go to System Operation > Task Manager > New Task 
       
       
-      ![image](https://github.com/Ari-Glikman/DataCollection/assets/73805987/17965315-d945-4755-930e-65f3c0f5bccb)
-
-You will now be given several fields to fill as to what task you want to create. You will choose the namespace in which you imported the package and give the task a name. A description should be given for future reference. Ideally leave the fast checkbox unselected, this means that the task will run slower but will collect more complete data. If this will take too long to run (depends on how big the database and its globals are) then perhaps it is best to tick here and opt for a faster task. The HowManyGlobals indicates how many globals should be collected: -1 indicates all globals and is the recommended option. Select Next, choose how often the task should run, and click finish.
-      
-      ![Recording 2023-05-10 at 7 10 32 PM](https://github.com/Ari-Glikman/DataCollection/assets/73805987/754d91fe-540b-42c0-8dae-a77c28956290)
-      
-      
-      
-      
-      b. You will now be prompted with the Task Schedule where you can see when all tasks, including the newly created one are scheduled to run. If you additionally wish to run it now select Run on the right          hand side.
-      
-      
-      
-      
-      ![TaskSuccessImg](https://github.com/Ari-Glikman/DataCollection/assets/73805987/ce5d7803-e94a-4be7-ad4a-6054cf6506e1)
+ ![image](https://github.com/Ari-Glikman/DataCollection/assets/73805987/17965315-d945-4755-930e-65f3c0f5bccb)
 
       
       
-      
-      
+You will now be given several fields to fill as to what task you want to create. You will choose the namespace in which you imported the package and give the task a name. A description should be given for future reference. Ideally leave the fast checkbox unselected, this means that the task will run slower but will collect more complete data. If this will take too long to run (depends on how big the database and its globals are) then perhaps it is best to tick here and opt for a faster task. The HowManyGlobals indicates how many globals should be collected: -1 indicates all globals and is the recommended option. Select Next, choose how often the task should run, and click finish.     
+      ![Uploading Recording 2023-05-10 at 7.10.32 PM.gif…]()
+
+b. You will now be prompted with the Task Schedule where you can see when all tasks, including the newly created one are scheduled to run. If you additionally wish to run it now select Run on the right hand side.
+
 Select the Task History to ensure that it was created successfully. After running the task you should see that it ran successfully as well. Otherwise an error should be seen here.
 
 This task will create two tables: 
       
 *Sample_DBExpansion_Data.DBAnalysisInfo*
-      This table is going to store data about the database itself. We refer to this as “Meta data”. The information it stores can be seen in the image below. The Fast Flag will indicate the selection chosen in 4.a.
       
-      ![DBTable](https://github.com/Ari-Glikman/DataCollection/assets/73805987/ecaa429b-6407-4c7f-bd3c-99802614cca7)
+This table is going to store data about the database itself. We refer to this as “Meta data”. The information it stores can be seen in the image below. The Fast Flag will indicate the selection chosen in 4.a.
+      ![DBTable](https://github.com/Ari-Glikman/DataCollection/assets/73805987/b3588f01-93a2-4056-a6fd-c3fb494cfa54)
 
-      
-      
+
 *Sample_DBExpansion_Data.GlobalAnalysisInfo*
       
-      This will contain the information regarding the globals in the database. Note that if there is a class name that is associated with the global, we will see it here along with their size. Lastly, note that the MetaDataID field corresponds to the ID field of the Sample_DBExpansion_Data.DBAnalysisInfo table. This means to say that at the time the database information was captured, its corresponding global information was captured and they share this identifying number (these are the globals in the database at that time). It is a way to see how the globals in a database, and the database itself evolve through time.
+
+This will contain the information regarding the globals in the database. Note that if there is a class name that is associated with the global, we will see it here along with their size. Lastly, note that the MetaDataID field corresponds to the ID field of the Sample_DBExpansion_Data.DBAnalysisInfo table. This means to say that at the time the database information was captured, its corresponding global information was captured and they share this identifying number (these are the globals in the database at that time). It is a way to see how the globals in a database, and the database itself evolve through time.
       
 
-https://github.com/Ari-Glikman/DataCollection/assets/73805987/3ecce94c-3239-428d-bfad-9cfe17a51933
 
 
 5) Next is the ever so slightly prettier User Interface.
       
+![Recording_2023-05-23_at_2_03_45_PM_AdobeExpress](https://github.com/Ari-Glikman/DataCollection/assets/73805987/f8707f97-05c2-463e-9512-c9aa9021f079)
 
 
 It displays information about the global and database displayed in the table in a more digestible manner. There are 3 graphs: one displaying the history of the data, the second displaying the historic sizes of a chosen global, either through the dropdown or a search, and finally there is an overview of all global sizes. At the bottom there is a table where one enters how many globals to display and it presents them ordered by size. The %Change column is highlighted yellow for a minimal change in size, green for a decrease in size, and red for a significant increase in size. 

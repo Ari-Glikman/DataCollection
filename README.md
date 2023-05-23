@@ -36,6 +36,13 @@ We are essentially telling the program to run all tests that are found in the fo
 
 The output should be as follows
       
- ![UnitTestOutput](https://github.com/Ari-Glikman/DataCollection/assets/73805987/3de80727-485a-4671-b716-7a043daf36f3)
+![UnitTestOutput](https://github.com/Ari-Glikman/DataCollection/assets/73805987/163465c4-7e69-483e-861c-d47c1f2fc83e)
 
-     
+      
+If the unit tests do not pass, then the program is not ready to run. Do not continue with the next steps until you get output that says all tests passed.
+      
+
+4) Congrats! It is not time to build the task. To do this:
+      a) a.	Open the management portal and go to System Operation > Task Manager > New Task 
+      ![image](https://github.com/Ari-Glikman/DataCollection/assets/73805987/17965315-d945-4755-930e-65f3c0f5bccb)
+

@@ -22,7 +22,7 @@ b.	Into this folder we will now export the class Sample.DBExpansion.Test.Capture
 ![Recording 2023-05-10 at 6 41 30 PM](https://github.com/Ari-Glikman/DataCollection/assets/73805987/0c405ec8-4db2-428a-b618-c7be58cf751a)
 
 
-c.    In terminal set the global ^UnitTestRoot = “<folder that the Unit Tests folder is in>”. Per the example above, it would be (note that you must be in the same namespace where you imported the package) C:\ (**note that it is not** “C:\Unit Tests” !)
+c.    In terminal set the global ^UnitTestRoot = “<< folder that the Unit Tests folder is  >>”. Per the example above, it would be (note that you must be in the same namespace where you imported the package) C:\ (**note that it is not** “C:\Unit Tests” !)
 
  ```
 set ^UnitTestRoot = "C:\"

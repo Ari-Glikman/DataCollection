@@ -35,7 +35,7 @@ ClassMethod HasPersistentProperty(className As %String, ByRef Arr As %String)
         {
 	        set Arr(i, "PropertyName") = key
 	    	set Arr(i, "PropertyType") = type
- 			set i = i+1
+ 		set i = i+1
 	}
     }
     QUIT $$$OK

@@ -27,16 +27,16 @@ ClassMethod PopulateDBTable(ByRef rowID As %Integer) As %Status
 	     	{
 		 		set status = $$$ERROR($$$GeneralError, "TimeRetrieval Failed, sqlcode: "_SQLCODE_" Message: "_$GET(%msg))    
 		 		return status
-		 	}
+		 }
 		set newAmountMsgs = ##class(Sample.DBExpansion.Util.Helper).getNewMessageNum(timeStampEnd)
 		set stampStart = $ZDATETIME($HOROLOG,3)
 		
 		set DBstatement=##class(%SQL.Statement).%New()
-	    set DBstatus=DBstatement.%PrepareClassQuery("%SYS.DatabaseQuery", "FreeSpace")
+	    	set DBstatus=DBstatement.%PrepareClassQuery("%SYS.DatabaseQuery", "FreeSpace")
 	    
-	    do ##class(%SYS.Namespace).GetNSInfo($NAMESPACE, .dbinfo)
-	    set directory = dbinfo("Directory")
-	    #dim DBresultset As %SQL.StatementResult
+	    	do ##class(%SYS.Namespace).GetNSInfo($NAMESPACE, .dbinfo)
+	    	set directory = dbinfo("Directory")
+	    	#dim DBresultset As %SQL.StatementResult
 		set DBresultset=DBstatement.%Execute($lb(directory)) 
 		/// set DBresultset=DBstatement.%Execute("*") // this is to execute on all databases
 		
@@ -65,19 +65,20 @@ ClassMethod PopulateDBTable(ByRef rowID As %Integer) As %Status
 		
 		
 		
-		&sql(INSERT INTO Sample_DBExpansion_Data.DBAnalysisInfo 
+			&sql(INSERT INTO Sample_DBExpansion_Data.DBAnalysisInfo 
 			(DatabaseName, DBAllocatedSize, DBUsedSize, TimeStampStart, NewMessagesCountSinceLastRun)
-	     	VALUES(:directory, :allocatedSize, :usedSize, :stampStart, :newAmountMsgs))
+		     	VALUES(:directory, :allocatedSize, :usedSize, :stampStart, :newAmountMsgs))
 	     
-	     if (SQLCODE '=0)
-	     {
+	     		if (SQLCODE '=0)
+	     		{
 		 	set status = $$$ERROR($$$GeneralError, "DB Insert Failed, sqlcode: "_SQLCODE_" Message: "_$GET(%msg))    		 		
 			return status
-		 }
+		 	}
 	     
-	}
-	set rowID = %ROWID
-	return $$$OK
+		}
+		
+		set rowID = %ROWID
+		return $$$OK
 }
 
 /// pass as parameters the metaID of globals that will be added to table (one more than previously exisitng, or 1 if no globals in table), as well as whether to run in 'fast' mode (=1) (no usedMB) or 'slow' mode (=0) (get usedMB), Number of globals to capture (-1 for all), note that it captures in alphabetical order

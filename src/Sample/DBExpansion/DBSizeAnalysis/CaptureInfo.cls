@@ -94,27 +94,27 @@ ClassMethod PopulateGlobalTable(MetaID As %Integer, Fast As %Boolean = 0, NumGlo
 {
 		set globalCount = 0
 		do ##class(%SYS.Namespace).GetNSInfo($NAMESPACE, .dbinfo)
-	    set directory = dbinfo("Directory")
-	    
+		set directory = dbinfo("Directory")
+	   
 		set statement=##class(%SQL.Statement).%New()
    		set status=statement.%PrepareClassQuery("%SYS.GlobalQuery","Size")
 
-    	set resultset=statement.%Execute(directory,,,,,Fast)
+    		set resultset=statement.%Execute(directory,,,,,Fast)
     	
     	
-    	if (resultset.%SQLCODE '=0) ///output error
+	    	if (resultset.%SQLCODE '=0) ///output error
 		{
 			set status = $$$ERROR($$$GeneralError, "%Execute failed, sqlcode: "_SQLCODE_" Message: "_$GET(%msg))    		 		
 			return status
 		}
     
-    	//note that globals with same name will appear multiple times in table, hence the timestamp to differentiate and for comparison in task2
-       	while (resultset.%Next() && ((globalCount < NumGlobalsToGet) || (NumGlobalsToGet = -1))) { //iterate thru globals, insert into table, if numGlobalsToGet = -1 then get all
+    		//note that globals with same name will appear multiple times in table, hence the timestamp to differentiate and for comparison in task2
+       		while (resultset.%Next() && ((globalCount < NumGlobalsToGet) || (NumGlobalsToGet = -1))) { //iterate thru globals, insert into table, if numGlobalsToGet = -1 then get all
        	
 			set globalCount = globalCount+1
 			set globalName = resultset.%Get("Name")
-		    set allocMB = resultset.%Get("Allocated MB")	    
-		    set usedMB = resultset.%Get("Used MB")    
+		        set allocMB = resultset.%Get("Allocated MB")	    
+		    	set usedMB = resultset.%Get("Used MB")    
 			set className = "" //don't want to rewrite classname that was previously written if no classname found, wipe variable
 
 			#dim %sqlcontext As %SQLProcContext 
@@ -124,11 +124,11 @@ ClassMethod PopulateGlobalTable(MetaID As %Integer, Fast As %Boolean = 0, NumGlo
 			{
 				set className = %sqlcontext.%Get("UsedByExtent")
 			}
-      		//// get class name ^^^ 	
-	    	&sql(Insert into Sample_DBExpansion_Data.GlobalAnalysisInfo(ClassName, GlobalName, AllocatedMB, UsedMB, MetaDataID)
-	    	 VALUES (:className, :globalName, :allocMB, :usedMB, :MetaID))
-   	     	if (SQLCODE '=0)
-	     	{
+      			//// get class name ^^^ 	
+	    		&sql(Insert into Sample_DBExpansion_Data.GlobalAnalysisInfo(ClassName, GlobalName, AllocatedMB, UsedMB, MetaDataID)
+	    	 	VALUES (:className, :globalName, :allocMB, :usedMB, :MetaID))
+   	     		if (SQLCODE '=0)
+	     		{
 		 		set status = $$$ERROR($$$GeneralError, "Global Insert Failed for global: "_globalName_" sqlcode: "_SQLCODE_" Message: "_$GET(%msg))    		 		
 				return status
 		 	}	
@@ -140,10 +140,10 @@ ClassMethod PopulateGlobalTable(MetaID As %Integer, Fast As %Boolean = 0, NumGlo
 		set dbNewestEntry.TimeStampEnd = $ZDATETIME($HOROLOG,3) 
 		set saveStatus = dbNewestEntry.%Save()
 		if $$$ISERR(saveStatus)
-			{
-				set status = $$$ERROR($$$GeneralError, "GlobalCount Save Failed, sqlcode: "_SQLCODE_" Message: "_$GET(%msg))    		 		
-				return status
-			}
+		{
+			set status = $$$ERROR($$$GeneralError, "GlobalCount Save Failed, sqlcode: "_SQLCODE_" Message: "_$GET(%msg))    		 		
+			return status
+		}
 		return $$$OK
 }
 

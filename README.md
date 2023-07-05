@@ -48,7 +48,8 @@ If the unit tests do not pass, then the program is not ready to run. Do not cont
       
 a. Open the management portal and go to System Operation > Task Manager > New Task 
       
-      
+*note that your user must have access to the %SYS namespace. otherwise the task will run but not collect any data*
+
 ![NewTask](https://github.com/Ari-Glikman/DataCollection/assets/73805987/a8f7b9de-3a4b-40d8-83ba-a411589d85ed)
 
       

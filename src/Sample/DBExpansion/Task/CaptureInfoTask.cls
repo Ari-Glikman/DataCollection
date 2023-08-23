@@ -11,6 +11,7 @@
 /// * of this code.                                          *
 /// **********************************************************
 /// calls <Method> ##class(Sample.DBExpansion.DBSizeAnalysis.CaptureInfo.RetrieveData() </Method>
+/// calls <Method> ##class(Sample.DBExpansion.DBSizeAnalysis.CaptureInfo.RetrieveData() </Method>
 Class Sample.DBExpansion.Task.CaptureInfoTask Extends %SYS.Task.Definition
 {
 
@@ -20,13 +21,16 @@ Parameter TaskName = "Global&Database Size Analysis Capture";
 /// a 0 indicates that it will be slower but more thorough (will retrieve both usedMB and allocatedMB) of globals
 Property Fast As %Boolean [ InitialExpression = 0 ];
 
-/// a -1 indicates get all globals, any other number is how many globals will be captured
-Property HowManyGlobals As %Integer [ InitialExpression = -1 ];
-
 Method OnTask() As %Status
 {
-		
-		set st = ##class(Sample.DBExpansion.DBSizeAnalysis.CaptureInfo).RetrieveData(..Fast,..HowManyGlobals)
+		do ##class(%SYS.System).WriteToConsoleLog("task started")
+		set st = ##class(Sample.DBExpansion.DBSizeAnalysis.CaptureInfo).RetrieveData(..Fast)
+		if $$$ISERR(st){
+			do ##class(%SYS.System).WriteToConsoleLog("task failed: "_st)
+		}
+		else {
+			do ##class(%SYS.System).WriteToConsoleLog("task completed successfully")
+		}
 		return st
 }
 

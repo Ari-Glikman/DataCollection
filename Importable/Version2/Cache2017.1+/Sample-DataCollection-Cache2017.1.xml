@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="IRIS for Windows (x86-64) 2022.3 (Build 606U)" ts="2023-08-23 10:49:24">
+<Class name="Sample.DBExpansion.DBSizeAnalysis.CaptureInfo">
+<Super>%RegisteredObject</Super>
+<TimeChanged>66660,48031.9374556</TimeChanged>
+<TimeCreated>66584,32814.956927</TimeCreated>
+
+<Method name="PopulateDBTable">
+<Description><![CDATA[
+pass by reference an address for the function to return a value to, will be used by the <Method>RetrieveData()</Method>
+the parameter passed by reference will be filled with the ID of the newly inserted DB statistics
+this ID will be the MetaData of the globals inserted into the globals table in <Method>PopulateGlobalTable</Method>, and hence the MetaID parameter passed as in <Method>RetrieveData()</Method>
+<br>
+<br>
+updates the <CLASS> Sample.DBExpansion.Data.DBAnalysisInfo </CLASS> class / <method> Sample_DBExpansion_Data.DBAnalysisInfo </method> table]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&rowID:%Integer]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		/// take the newest time
+		&sql(Select TOP 1 TimeStampEnd Into :timeStampEnd From Sample_DBExpansion_Data.DBAnalysisInfo ORDER BY TimeStampEnd DESC)
+		if (SQLCODE < 0) //0 or 100 is okay here since there may be no data in table
+	     	{
+		 		set status = $$$ERROR($$$GeneralError, "TimeRetrieval Failed")    
+		 		return $$$ADDSC(status,SQLCODE)
+		 	}
+		set newAmountMsgs = ##class(Sample.DBExpansion.Util.Helper).getNewMessageNum(timeStampEnd)
+		set stampStart = $ZDATETIME($HOROLOG,3)
+		
+		set DBstatement=##class(%SQL.Statement).%New()
+	    set DBstatus=DBstatement.%PrepareClassQuery("%SYS.DatabaseQuery", "FreeSpace")
+	    
+	    do ##class(%SYS.Namespace).GetNSInfo($NAMESPACE, .dbinfo)
+	    set directory = dbinfo("Directory")
+	    #dim DBresultset As %SQL.StatementResult
+		set DBresultset=DBstatement.%Execute($lb(directory)) 
+		
+		
+		if (DBresultset.%SQLCODE '=0) ///output error
+		{
+			set status = $$$ERROR($$$GeneralError,"%Execute failed")
+			return $$$ADDSC(status,SQLCODE)
+		}
+		
+		while DBresultset.%Next(){//for each database if * is enabled above
+		
+			set allocatedSize = DBresultset.%Get("Size")
+			set unusedSpace = DBresultset.%Get("Available")
+			// check units... convert everything to MB for now (GB->MB)
+			if ($FIND(allocatedSize, "GB") > 0) 
+			{
+				set allocatedSize = allocatedSize*1000 //i think this should be 1024 but it matches the sql results with 1000
+			}
+			if ($FIND(unusedSpace, "GB") > 0)
+			{
+				set unusedSpace = unusedSpace*1000
+			}
+		
+			set usedSize = allocatedSize-unusedSpace
+		
+		
+		
+		&sql(INSERT INTO Sample_DBExpansion_Data.DBAnalysisInfo 
+			(DatabaseName, DBAllocatedSize, DBUsedSize, TimeStampStart, NewMessagesCountSinceLastRun)
+	     	VALUES(:directory, :allocatedSize, :usedSize, :stampStart, :newAmountMsgs))
+	     
+	     if (SQLCODE '=0)
+	     {
+		 	set status = $$$ERROR($$$GeneralError, "DB Insert Failed")    
+		 	return $$$ADDSC(status,SQLCODE)
+		 }
+	     
+	}
+	set rowID = %ROWID
+	return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="PopulateGlobalTable">
+<Description><![CDATA[
+pass as parameters the metaID of globals that will be added to table (one more than previously exisitng, or 1 if no globals in table), as well as whether to run in 'fast' mode (=1) (no usedMB) or 'slow' mode (=0) (get usedMB)
+<br>
+<br>
+called by <method>RetrieveData()</method>
+<br>
+<br>
+updates the <CLASS> Sample.DBExpansion.Data.GlobalAnalysisInfo </CLASS> class / <method> Sample_DBExpansion_Data.GlobalAnalysisInfo </method> table
+<br>
+returns status as error or $$$OK]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>MetaID:%Integer,Fast:%Boolean=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		 set globalCount = 0
+		do ##class(%SYS.Namespace).GetNSInfo($NAMESPACE, .dbinfo)
+	    set directory = dbinfo("Directory")
+	    
+		set statement=##class(%SQL.Statement).%New()
+   		set status=statement.%PrepareClassQuery("%SYS.GlobalQuery","Size")
+    	set resultset=statement.%Execute(directory,,,,,Fast) 
+    	
+    	if (resultset.%SQLCODE '=0) ///output error
+		{
+			set status = $$$ERROR($$$GeneralError,"%Execute failed")
+			return $$$ADDSC(status,SQLCODE)
+		}
+    
+    	//note that globals with same name will appear multiple times in table, hence the timestamp to differentiate and for comparison in task2
+       	while resultset.%Next() { //iterate thru globals, insert into table
+			
+			set globalCount = globalCount+1
+			set globalName = resultset.%Get("Name")
+		    set allocMB = resultset.%Get("Allocated MB")	    
+		    set usedMB = resultset.%Get("Used MB")    
+			set className = "" //don't want to rewrite classname that was previously written if no classname found, wipe variable
+
+			#dim %sqlcontext As %SQLProcContext 
+			set %sqlcontext = ""
+			do ##class(%ExtentMgr.Util).GlobalUses("^"_globalName)	
+			if (%sqlcontext.%Next())
+			{
+				set className = %sqlcontext.%Get("UsedByExtent")
+			}
+      		//// get class name ^^^ 	
+	    	&sql(Insert into Sample_DBExpansion_Data.GlobalAnalysisInfo(ClassName, GlobalName, AllocatedMB, UsedMB, MetaData)
+	    	 VALUES (:className, :globalName, :allocMB, :usedMB, :MetaID))
+   	     	if (SQLCODE '=0)
+	     	{
+		 		set status = $$$ERROR($$$GeneralError, "Global Insert Failed for global: "_globalName)    
+		 		return $$$ADDSC(status,SQLCODE)
+		 	}
+		}
+		
+		set dbNewestEntry = ##class(Sample.DBExpansion.Data.DBAnalysisInfo).%OpenId(MetaID)
+		set dbNewestEntry.NumOfGlobals = globalCount
+		set dbNewestEntry.FastFlag = Fast
+		set dbNewestEntry.TimeStampEnd = $ZDATETIME($HOROLOG,3) 
+		set saveStatus = dbNewestEntry.%Save()
+		if $$$ISERR(saveStatus)
+			{
+				set status = $$$ERROR($$$GeneralError, "GlobalCount Save Failed")
+				return $$$ADDSC(status,saveStatus)
+			}
+		return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RetrieveData">
+<Description>
+parameter: whether to run in 'fast' mode (=1) (no usedMB) or 'slow' mode (=0) (get usedMB)
+note that fast mode will return 0s in the usedMB field</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Fast:%Boolean</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		set st = ..PopulateDBTable(.currID)
+		if $$$ISOK(st)
+		{
+			set st = ..PopulateGlobalTable(currID,Fast)
+		}
+		return st
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Sample.DBExpansion.Data.DBAnalysisInfo">
+<Description>
+**********************************************************
+*                   ** N O T I C E **                    *
+*                - TEST/DEMO SOFTWARE -                  *
+* This code is not supported by InterSystems as part     *
+* of any released product.  It is supplied by            *
+* InterSystems as a demo/test tool for a specific        *
+* product and version. The user or customer is fully     *
+* responsible for the maintenance and testing of this    *
+* software after delivery, and InterSystems shall bear   *
+* no responsibility nor liabilities for errors or misuse *
+* of this code.                                          *
+**********************************************************
+this is the table that will store history of statistics for the desired database</Description>
+<Super>%Persistent</Super>
+<TimeChanged>66709,38616.9505665</TimeChanged>
+<TimeCreated>66584,32659.2919584</TimeCreated>
+
+<Property name="DatabaseName">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="TimeStampStart">
+<Type>%TimeStamp</Type>
+</Property>
+
+<Property name="TimeStampEnd">
+<Type>%TimeStamp</Type>
+</Property>
+
+<Index name="TimeStampEndIndex">
+<Properties>TimeStampEnd</Properties>
+</Index>
+
+<Property name="NumOfGlobals">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="DBAllocatedSize">
+<Description>
+as string since this will have units after the number</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="DBUsedSize">
+<Description>
+will be calculated as DB Size - DB Available Space</Description>
+<Type>%Decimal</Type>
+</Property>
+
+<Property name="NewMessagesCountSinceLastRun">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="FastFlag">
+<Description><![CDATA[
+indicates whether the corresponding globals in the <Method>Sample.DBExpansion.Data.GlobalAnalysisInfo</Method> were retrieved with usedMB or without (=0)
+FastFlag = 1 means that they were retrieved in fast mode (no UsedMB), FastFlag = 0 indicates that the UsedMB field was retrieved as well]]></Description>
+<Type>%Boolean</Type>
+</Property>
+
+<Method name="GetTimeStampEnd">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>id:%String</FormalSpec>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[
+    set obj = ..%OpenId(id) //check obj exists..
+
+    return obj.TimeStampEnd
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Sample.DBEx95BC.DBAnalysisInfoD</DataLocation>
+<DefaultData>DBAnalysisInfoDefaultData</DefaultData>
+<IdLocation>^Sample.DBEx95BC.DBAnalysisInfoD</IdLocation>
+<IndexLocation>^Sample.DBEx95BC.DBAnalysisInfoI</IndexLocation>
+<StreamLocation>^Sample.DBEx95BC.DBAnalysisInfoS</StreamLocation>
+<ExtentSize>1</ExtentSize>
+<Data name="DBAnalysisInfoDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>DatabaseName</Value>
+</Value>
+<Value name="3">
+<Value>TimeStampStart</Value>
+</Value>
+<Value name="4">
+<Value>TimeStampEnd</Value>
+</Value>
+<Value name="5">
+<Value>NumOfGlobals</Value>
+</Value>
+<Value name="6">
+<Value>DBAllocatedSize</Value>
+</Value>
+<Value name="7">
+<Value>DBUsedSize</Value>
+</Value>
+<Value name="8">
+<Value>NewMessagesCountSinceLastRun</Value>
+</Value>
+<Value name="9">
+<Value>FastFlag</Value>
+</Value>
+</Data>
+<Property name="%%CLASSNAME">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>2</AverageFieldSize>
+</Property>
+<Property name="%%ID">
+<Selectivity>1</Selectivity>
+<AverageFieldSize>3</AverageFieldSize>
+</Property>
+<Property name="DBAllocatedSize">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>7</AverageFieldSize>
+</Property>
+<Property name="DBUsedSize">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>3</AverageFieldSize>
+</Property>
+<Property name="DatabaseName">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>51</AverageFieldSize>
+</Property>
+<Property name="NewMessagesCountSinceLastRun">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>3</AverageFieldSize>
+</Property>
+<Property name="NumOfGlobals">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>2</AverageFieldSize>
+</Property>
+<Property name="TimeStampEnd">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>21</AverageFieldSize>
+</Property>
+<Property name="TimeStampStart">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>21</AverageFieldSize>
+</Property>
+<SQLMap name="IDKEY">
+<BlockCount>-4</BlockCount>
+</SQLMap>
+</Storage>
+</Class>
+
+
+<Class name="Sample.DBExpansion.Data.GlobalAnalysisInfo">
+<Super>%Persistent</Super>
+<TimeChanged>66709,38617.0383443</TimeChanged>
+<TimeCreated>66584,32687.3700192</TimeCreated>
+
+<Property name="GlobalName">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="GlobalNameIndex">
+<Properties>GlobalName</Properties>
+</Index>
+
+<Property name="ClassName">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="AllocatedMB">
+<Type>%Float</Type>
+</Property>
+
+<Property name="UsedMB">
+<Type>%Float</Type>
+</Property>
+
+<Property name="MetaData">
+<Description><![CDATA[
+use MetaData->.......]]></Description>
+<Type>Sample.DBExpansion.Data.DBAnalysisInfo</Type>
+</Property>
+
+<Index name="MetaDataIndex">
+<Properties>MetaData</Properties>
+</Index>
+
+<ForeignKey name="DBAnalysisInfoFK">
+<OnDelete>cascade</OnDelete>
+<Properties>MetaData</Properties>
+<ReferencedClass>Sample.DBExpansion.Data.DBAnalysisInfo</ReferencedClass>
+</ForeignKey>
+
+<UDLText name="T">
+<Content><![CDATA[
+// this instead of a one to many relationship
+
+]]></Content>
+</UDLText>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Sample.DBE95BC.GlobalAnaly9E3AD</DataLocation>
+<DefaultData>GlobalAnalysisInfoDefaultData</DefaultData>
+<IdLocation>^Sample.DBE95BC.GlobalAnaly9E3AD</IdLocation>
+<IndexLocation>^Sample.DBE95BC.GlobalAnaly9E3AI</IndexLocation>
+<StreamLocation>^Sample.DBE95BC.GlobalAnaly9E3AS</StreamLocation>
+<ExtentSize>148</ExtentSize>
+<Data name="GlobalAnalysisInfoDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>GlobalName</Value>
+</Value>
+<Value name="3">
+<Value>ClassName</Value>
+</Value>
+<Value name="4">
+<Value>AllocatedMB</Value>
+</Value>
+<Value name="5">
+<Value>UsedMB</Value>
+</Value>
+<Value name="6">
+<Value>TimeStamp</Value>
+</Value>
+<Value name="7">
+<Value>MetaData</Value>
+</Value>
+</Data>
+<Property name="%%CLASSNAME">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>2</AverageFieldSize>
+</Property>
+<Property name="%%ID">
+<Selectivity>1</Selectivity>
+<AverageFieldSize>3</AverageFieldSize>
+</Property>
+<Property name="AllocatedMB">
+<Selectivity>1.2669%</Selectivity>
+<OutlierSelectivity>.695946:.008</OutlierSelectivity>
+<AverageFieldSize>3.99</AverageFieldSize>
+</Property>
+<Property name="ClassName">
+<Selectivity>1.1457%</Selectivity>
+<OutlierSelectivity>.736486:</OutlierSelectivity>
+<AverageFieldSize>8.08</AverageFieldSize>
+</Property>
+<Property name="GlobalName">
+<Selectivity>0.6757%</Selectivity>
+<AverageFieldSize>19.05</AverageFieldSize>
+</Property>
+<Property name="MetaData">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>3</AverageFieldSize>
+</Property>
+<Property name="TimeStamp">
+<Selectivity>100.0000%</Selectivity>
+<AverageFieldSize>21</AverageFieldSize>
+</Property>
+<Property name="UsedMB">
+<Selectivity>1.1898%</Selectivity>
+<OutlierSelectivity>.452703:0</OutlierSelectivity>
+<AverageFieldSize>3.08</AverageFieldSize>
+</Property>
+<SQLMap name="IDKEY">
+<BlockCount>-8</BlockCount>
+</SQLMap>
+<SQLMap name="MetaDataIndex">
+<BlockCount>-4</BlockCount>
+</SQLMap>
+</Storage>
+</Class>
+
+
+<Class name="Sample.DBExpansion.Task.CaptureInfoTask">
+<Description><![CDATA[
+calls <Method> ##class(Sample.DBExpansion.DBSizeAnalysis.CaptureInfo.RetrieveData() </Method>]]></Description>
+<Super>%SYS.Task.Definition</Super>
+<TimeChanged>66660,49169.6155899</TimeChanged>
+<TimeCreated>66584,33141.9658254</TimeCreated>
+
+<Parameter name="TaskName">
+<Default><![CDATA[Global&Database Size Analysis Capture]]></Default>
+</Parameter>
+
+<Property name="Fast">
+<Description>
+a 1 indicates that it will retrieve global information as quick as possible (no retrieval of usedMB, only of allocatedMB)
+a 0 indicates that it will be slower but more thorough (will retrieve both usedMB and allocatedMB) of globals</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Method name="OnTask">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		do ##class(%SYS.System).WriteToConsoleLog("task started")
+		set st = ##class(Sample.DBExpansion.DBSizeAnalysis.CaptureInfo).RetrieveData(..Fast)
+		if $$$ISERR(st){
+			do ##class(%SYS.System).WriteToConsoleLog("task failed: "_st)
+		}
+		else {
+			do ##class(%SYS.System).WriteToConsoleLog("task completed successfully")
+		}
+		return st
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Sample.DBExpansion.Test.CaptureTest">
+<Super>%UnitTest.TestCase</Super>
+<TimeChanged>66660,44973.1547273</TimeChanged>
+<TimeCreated>66584,35885.8020211</TimeCreated>
+
+<Method name="OnBeforeAllTests">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		
+	return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="TestMessageIncreaseCount">
+<Implementation><![CDATA[
+	set timebeforeMsgsAdded = $ZDATETIME($HOROLOG,3)
+	
+	// add x new messages 7 days in the future
+	for i = 1:1:16
+	{
+		set newmsgheader = ##class(Ens.MessageHeader).%New()
+		set newmsgheader.TimeCreated = $ZDATETIME($HOROLOG+7,3) /// 10 days in the future, to not get confused with current stats
+		set st = newmsgheader.%Save()
+		if st'=1 
+		{
+			do $$$AssertEquals(st, 1)	//alert that saving message header failed only if fails... should not happen
+		}		
+	}
+	set numNewMsgs = ##class(Sample.DBExpansion.Util.Helper).getNewMessageNum(timebeforeMsgsAdded)
+	
+	// count messages since last db entry 
+	// assert that this count is x 
+	do $$$AssertEquals(16,numNewMsgs)
+]]></Implementation>
+</Method>
+
+<Method name="TestPopDBTable">
+<Implementation><![CDATA[
+	set st = ##class(Sample.DBExpansion.DBSizeAnalysis.CaptureInfo).PopulateDBTable(.MetaID)
+	do $$$AssertEquals(st, 1) ///test that populate db table works...
+
+	///check that there is something in the table....
+	set query = "SELECT * FROM Sample_DBExpansion_Data.DBAnalysisInfo WHERE ID = ?" //get all unique globalnames   
+	set statement = ##class(%SQL.Statement).%New()
+	set status = statement.%Prepare(query)
+	set resultset = statement.%Execute(MetaID)
+	do $$$AssertEquals(resultset.%SQLCODE, 0)
+]]></Implementation>
+</Method>
+
+<Method name="TestCapture">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set st = ##class(Sample.DBExpansion.DBSizeAnalysis.CaptureInfo).PopulateDBTable(.MetaID)
+	do $$$AssertEquals(st, 1) ///test that populate db table works...
+
+	do ##class(%SYS.Namespace).GetNSInfo($NAMESPACE, .dbinfo)
+	set directory = dbinfo("Directory")
+
+	if ($data(^DBTESTGLOBAL19)) /// need to make sure there is no global with this name as we will be deleting our home-made global at the end of the test)
+	{
+		return $$$ERROR($$$GeneralError,"%Global DBTESTGLOBAL19 already exists...")
+	}
+	set ^DBTESTGLOBAL19 = 48
+	
+	set statement = ##class(%SQL.Statement).%New()
+	set status = statement.%PrepareClassQuery("%SYS.GlobalQuery","Size")
+	set resultset = statement.%Execute(directory,,"DBTESTGLOBAL19",,,0) //// just want the one global we created
+	if resultset.%Next(){
+		set globalName = resultset.%Get("Name")
+		set allocMB = resultset.%Get("Allocated MB")	    
+		set usedMB = resultset.%Get("Used MB")    
+	}
+	set className = ""
+	#dim %sqlcontext As %SQLProcContext 	
+	set %sqlcontext = ""
+	do ##class(%ExtentMgr.Util).GlobalUses("^"_globalName)	
+	if (%sqlcontext.%Next())
+	{
+		set className = %sqlcontext.%Get("UsedByExtent") //should be blank anyways...
+	}
+
+	///note the change from previous versions of MetaDataID to MetaData
+	&sql(Insert into Sample_DBExpansion_Data.GlobalAnalysisInfo(ClassName, GlobalName, AllocatedMB, UsedMB, MetaData)
+	    	 VALUES (:className, :globalName, :allocMB, :usedMB, :MetaID))
+
+	do $$$AssertEquals(SQLCODE, 0) /// test that insertion works
+	set dbNewestEntry = ##class(Sample.DBExpansion.Data.DBAnalysisInfo).%OpenId(MetaID)
+	set dbNewestEntry.NumOfGlobals = 1
+	set dbNewestEntry.FastFlag = 0
+	set dbNewestEntry.TimeStampEnd = $ZDATETIME($HOROLOG,3) 
+	set saveStatus = dbNewestEntry.%Save()
+	do $$$AssertEquals(saveStatus,1) ///test that we are able to update the db stats
+
+	do $$$AssertEquals(MetaID, dbNewestEntry.%Id()) /// test that meta id of global matches id of db table
+
+	//delete...
+	
+	&sql(DELETE FROM Sample_DBExpansion_Data.DBAnalysisInfo WHERE ID = :MetaID)
+	do $$$AssertEquals(SQLCODE, 0) /// test that we can delete the table from db
+	&sql(SELECT globalName INTO :myGlobalName FROM Sample_DBExpansion_Data.GlobalAnalysisInfo WHERE ID = :MetaID)
+	do $$$AssertEquals(SQLCODE, 100) /// here we are testing that the foreign key works... delete of DB deletes associated globals
+	
+	kill ^DBTESTGLOBAL19
+]]></Implementation>
+</Method>
+
+<Method name="OnAfterAllTests">
+<Description><![CDATA[
+Run by <B>RunTest</B> once after all test methods in the test class are run. Can be used to tear down a test environment that was set up by <B>OnBeforeAllTests</B> See example in <b>OnBeforeAllTests</b>. ]]></Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    
+	set today = $ZDATETIME($HOROLOG,3)
+	//delete msg headers...
+	&sql(DELETE FROM ENS.MessageHeader WHERE DATEDIFF('dd',:today,TimeCreated) >=1 )
+	RETURN $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Sample.DBExpansion.Test.TestManager">
+<Super>%UnitTest.Manager</Super>
+<TimeChanged>66584,36266.7966103</TimeChanged>
+<TimeCreated>66584,36233.4296045</TimeCreated>
+
+<Method name="RunTest">
+<Description><![CDATA[
+Runs classes that extend <b>%UnitTest.TestCase</b> that contain test methods.  Creates a log on each run, stored in <b>^UnitTest.Result</b>.<br> 
+<dl>
+<dt><i>testspec</i> 
+<dd><i>testspec</i> takes the form of <i>testsuite [ :testcase [ :testmethod ] ]</i>. 
+<br><br><i>testsuite</i> is a directory (and optionally, subdirectories) that contains tests. By default <b>RunTest</b> runs all tests found here recursively. <i>testspec</i> must be a child directory of the directory named by the global <b>^UnitTestRoot</b>.  
+ <b>^UnitTestRoot</b> must specify a valid directory because <b>RunTest</b> checks for its existence before running tests.  If <i>testspec</i> is not specified, then the <b>^UnitTestRoot</b> directory is used.  Any subdirectory whose name begins with an underscore ( _ ) is skipped.
+<br><br><i>testcase</i> is a class that extends <b>%UnitTest.TestCase</b> (contains tests) in the form <i>package.class</i> and is an optional argument. 
+<br><br><i>testmethod</i> is a method name and is an optional argument.
+<br><br><i>testspec</i> can also be an array of testsuite, or if you pass in a global name the global is an array of testsuites. In addition it also supports a comma separated set of values.
+<br><br>
+<dt><i>qualifiers</i> 
+<dd>Any of the following command-line arguments can be combined as a single string, such as <b>/noload/norecursive</b>. All are optional.<br><br>
+The first four (<b>debug</b>, <b>load</b>, <b>run</b>, and <b>recursive</b>) are negatable Booleans.  They can be turned on with <i>/arg</i> or off by adding <b>no</b> in the front, as <b>/noload</b> or adding <b>=0</b> to the end, as <b>/load=0</b>.<br><br> 
+
+<b>/debug</b>: Run in debug mode, which causes a break if a test fails. Default is <b>/nodebug</b>. <br><br>
+<b>/load</b>: Load use cases from the specified <i>testspec</i>. Default is <b>/load</b>. If <b>/load</b> and <b>/run</b> are both on, then all loaded classes, routines, and CSP files are deleted after the tests are run. To prevent them from being deleted at the end, load them with <b>DebugLoadTestSuite</b> and run them with <b>DebugRunTestCase</b>.<br><br>
+<b>/run</b>: Run the test suite.  Use <b>/norun</b> if you only want to load, but not run, a suite into a namespace. Default is <b>/run</b>.<br><br>
+<b>/recursive</b>: Recurse the specified directory when loading test classes. Default is <b>/recursive</b>.<br><br>
+<b>/display=all</b>: Display extended information when loading exported test class definitions. <b>/display=none</b> displays limited information. Default is <b>/display=all</b>. <br><br>
+<b>/autoload</b>: Automatically load sub-directories with the given name when loading test classes.
+Default is <b>/autoload=_autoload</b>.
+When this qualifier is set, classes are loaded from the given sub-directory of the current directory and its ancestors.
+This makes it possible to use a class in multiple test suites without copying it to each of their directories.<br><br>
+<b>/nodelete</b>: Do not delete loaded classes when the test is complete.<br><br>
+
+<dt><i>userparam</i> 
+<dd>An arbitrary argument passed in by the caller of the <b>UnitTest</b>.  The top node of this variable becomes the value for the <b>UserParam</b> property of the <b>Manager</b>.
+The first level subscripts and their values are used to populate the <b>UserFields</b> array.
+</dl>
+<br><br>
+Example of RunTest:<br>
+<pre>
+ set ^UnitTestRoot = "c:\test"
+ do ##class(%UnitTest.Manager).RunTest("sql\sqlprocs")
+ do ##class(%UnitTest.Manager).RunTest("sql\sqlprocs","/debug/recursive=0")
+</pre>
+Note: If any of your code needs to run in the <b>%SYS</b> namespace, <b>zn</b> to the <b>%SYS</b> namespace, run the code, then return to another namespace. ]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[testspec:%String,qspec:%String,&userparam]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set sc=..RunTestSuites($g(testspec),.qspec,.userparam)
+	If $$$ISERR(sc) Do $system.Status.DisplayError(sc)
+	Quit sc
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Sample.DBExpansion.Util.Helper">
+<TimeChanged>66618,65974.8377068</TimeChanged>
+<TimeCreated>66584,33383.7583228</TimeCreated>
+
+<Method name="HasPersistentProperty">
+<Description>
+Get properties using macros wrapping direct global references
+will fill Arr, pass by reference</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[className:%String,&Arr:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    // Getting properties via macro-wrapped direct global references is harder to read,
+    // but is the fastest way to do it.
+    set key = ""
+    set i = 1
+    set myArray(1) = ""
+
+    &sql(SELECT Name INTO :class FROM %Dictionary.CompiledClass Where Upper(ID) Like Upper(:className)) //maybe will get parameter as all upper..
+    if (SQLCODE '=0)
+    {
+        set status = $$$ERROR($$$GeneralError, "Failed Searching For Persistent Properties")    
+        return $$$ADDSC(status,SQLCODE)
+    }
+    
+    for {
+        set key = $$$comMemberNext(class,$$$cCLASSproperty,key)
+        quit:key=""
+        set type = $$$comMemberKeyGet(class,$$$cCLASSproperty,key,$$$cPROPtype)
+        set origin = $$$comMemberKeyGet(class,$$$cCLASSproperty,key,$$$cPROPorigin)
+        set properties(key) = $listbuild(type,origin)
+        if ($classmethod(type,"%Extends", "%Persistent"))
+        {
+	        set Arr(i, "PropertyName") = key
+	    	set Arr(i, "PropertyType") = type
+ 			set i = i+1
+	    }
+    }
+    QUIT $$$OK
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// time to measure new messages from
+
+]]></Content>
+</UDLText>
+
+<Method name="getNewMessageNum">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>timeStamp:%TimeStamp</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+
+	if timeStamp = "" //no prev data, take all
+	{
+		&sql(SELECT Count(*) INTO :myCount FROM Ens.MessageHeader)
+		return myCount
+	}
+	else
+	{
+		&sql(SELECT Count(*) INTO :myCount FROM Ens.MessageHeader WHERE DATEDIFF('ss',:timeStamp,TimeCreated)>0)
+		return myCount
+	}
+]]></Implementation>
+</Method>
+</Class>
+</Export>

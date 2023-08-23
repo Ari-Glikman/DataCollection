@@ -15,17 +15,20 @@ Class Sample.DBExpansion.Data.GlobalAnalysisInfo Extends %Persistent
 
 Property GlobalName As %String(MAXLEN = 200);
 
+Index GlobalNameIndex On GlobalName;
+
 Property ClassName As %String(MAXLEN = 200);
 
 Property AllocatedMB As %Float;
 
 Property UsedMB As %Float;
 
-Property MetaDataID As %Integer;
+/// use MetaData->.......
+Property MetaData As Sample.DBExpansion.Data.DBAnalysisInfo;
 
-Index MetaDataIDIndex On MetaDataID;
+Index MetaDataIndex On MetaData;
 
-ForeignKey DBAnalysisInfoFK(MetaDataID) References Sample.DBExpansion.Data.DBAnalysisInfo() [ OnDelete = cascade ];
+ForeignKey DBAnalysisInfoFK(MetaData) References Sample.DBExpansion.Data.DBAnalysisInfo() [ OnDelete = cascade ];
 
 // this instead of a one to many relationship
 
@@ -51,7 +54,7 @@ Storage Default
 <Value>TimeStamp</Value>
 </Value>
 <Value name="7">
-<Value>MetaDataID</Value>
+<Value>MetaData</Value>
 </Value>
 </Data>
 <DataLocation>^Sample.DBE95BC.GlobalAnaly9E3AD</DataLocation>
@@ -86,7 +89,7 @@ Storage Default
 <Histogram>$lb(.06666666666666666667,0,0,$lb(" ALLOCATEDMB"," BARE.BSQW.2"," CINEMAOOFILMCATEGORYI"," DEEPSEE.FOLDERITEMI"," ENS.ACTIVITY.DATA.SECONDSI"," ENS.BUSINESSPROCESSI"," ENS.CONFIGURATION"," ENS.QUEUE"," ENS.UTIL.LOGI"," ENSHL7.SEGMENT"," FCE.BRANCHD"," HS.FHIRMETA.STORAGE.RSRCD"," HS.XF.VALUESET"," SAMPLE.COMPANYI"," SIMPLE.HUMANI"," ZIPCODEDATA"),$lb(1,1,1,1,5,5,5,5,4,1,1,4,1,2,1),$lb(541150284,1095519311,1111577157,1111577157,1128877637,1128877637,1145390416,1145390416,1162761006,1094931529,1112888137,1112888137,1129270854,1129270854,1364542805,1364542805,1431587148,777344073,1212954414,1162761032,1178813742,1178813742,1213410886,1179142482,1480994390,1213410904,1396788560,1095585868,1229803596,1397312848,1514754115,542787920))</Histogram>
 <Selectivity>0.6757%</Selectivity>
 </Property>
-<Property name="MetaDataID">
+<Property name="MetaData">
 <AverageFieldSize>3</AverageFieldSize>
 <Histogram>$lb(.06666666666666666667,1,0,$lb(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),$lb(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),$lb(822083584,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,822083584))</Histogram>
 <Selectivity>100.0000%</Selectivity>
@@ -105,7 +108,7 @@ Storage Default
 <SQLMap name="IDKEY">
 <BlockCount>-8</BlockCount>
 </SQLMap>
-<SQLMap name="MetaDataIDIndex">
+<SQLMap name="MetaDataIndex">
 <BlockCount>-4</BlockCount>
 </SQLMap>
 <StreamLocation>^Sample.DBE95BC.GlobalAnaly9E3AS</StreamLocation>
@@ -113,3 +116,4 @@ Storage Default
 }
 
 }
+

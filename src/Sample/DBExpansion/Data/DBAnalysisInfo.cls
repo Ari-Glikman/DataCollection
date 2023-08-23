@@ -25,7 +25,7 @@ Index TimeStampEndIndex On TimeStampEnd;
 Property NumOfGlobals As %Integer;
 
 /// as string since this will have units after the number
-Property DBAllocatedSize As %String(MAXLEN = 200);
+Property DBAllocatedSize As %String;
 
 /// will be calculated as DB Size - DB Available Space
 Property DBUsedSize As %Decimal;
@@ -35,6 +35,13 @@ Property NewMessagesCountSinceLastRun As %Integer;
 /// indicates whether the corresponding globals in the <Method>Sample.DBExpansion.Data.GlobalAnalysisInfo</Method> were retrieved with usedMB or without (=0)
 /// FastFlag = 1 means that they were retrieved in fast mode (no UsedMB), FastFlag = 0 indicates that the UsedMB field was retrieved as well
 Property FastFlag As %Boolean;
+
+ClassMethod GetTimeStampEnd(id As %String) As %TimeStamp
+{
+    set obj = ..%OpenId(id) //check obj exists..
+
+    return obj.TimeStampEnd
+}
 
 Storage Default
 {

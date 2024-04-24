@@ -11,7 +11,8 @@ This is a step-by-step instruction guide for creating a task to collect data abo
       
 If a Sample package is already present on your server, then you should still see the new subpackages along with any other folders that were previously there.
 
-3)	It is now time to run unit testing to make sure everything works correctly. 
+3)	It is now time to run unit testing to make sure everything works correctly.
+   
 a.	Create a folder called Unit Tests that can be read by your InterSystems Terminal, for example, since I have a local installation, I will just make a folder in my C drive.
  
  ![FolderStructure](https://github.com/Ari-Glikman/DataCollection/assets/73805987/da855796-9a22-46bb-b6a7-8a1971a61403)

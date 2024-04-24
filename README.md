@@ -45,7 +45,7 @@ The output should be as follows
 If the unit tests do not pass, then the program is not ready to run. Do not continue with the next steps until you get output that says all tests passed.
       
 
-4) Congrats! It is not time to build the task. To do this:
+4) Congrats! It is now time to build the task. To do this:
       
 a. Open the management portal and go to System Operation > Task Manager > New Task 
       

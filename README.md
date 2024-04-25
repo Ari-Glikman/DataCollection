@@ -1,5 +1,5 @@
 # Data Collection
-This is a step-by-step instruction guide for creating a task to collect data about the InterSystems database and globals therein
+This is a step-by-step instruction guide for creating a task to collect data about the InterSystems database and globals therein.
 
 **Disclaimer: This software is merely for TEST/DEMO purposes. This code is not supported by InterSystems as part of any released product. It is supplied by InterSystems as a demo/test tool for a specific product and version. The user or customer is fully responsible for the maintenance and testing of this software after delivery, and InterSystems shall bear no responsibility nor liabilities for errors or misuse of this code.**
 

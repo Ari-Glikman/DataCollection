@@ -90,6 +90,8 @@ It displays information about the global and database displayed in the table in 
 
 Find step-by-step instructions on how to set this up [here](https://github.com/Ari-Glikman/DataCollection-UI).
 
+If you're not interested in the graphs, then continue onto data analysis [here](https://github.com/Ari-Glikman/DataAnalysis).
+
 Contact Ari @ Ari.Glikman@InterSystems.com with any questions or suggestions.
 
       

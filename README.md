@@ -88,7 +88,7 @@ This will contain the information regarding the globals in the database. Note th
 
 It displays information about the global and database displayed in the table in a more digestible manner. There are 3 graphs: one displaying the history of the data, the second displaying the historic sizes of a chosen global, either through the dropdown or a search, and finally there is an overview of all global sizes. At the bottom there is a table where one enters how many globals to display and it presents them ordered by size. The %Change column is highlighted yellow for a minimal change in size, green for a decrease in size, and red for a significant increase in size. 
 
-The step-by-step instructions on how to install this will be released in the near future. However, note that no further functionality is presented here, it is just a means to extract the data from the tables listed above and make it more human friendly. All data of significance is stored in the tables themselves and analysis can be done on them. 
+Find step-by-step instructions on how to set this up [here](https://github.com/Ari-Glikman/DataCollection-UI)
 
 Contact Ari @ Ari.Glikman@InterSystems.com with any questions or suggestions.
 

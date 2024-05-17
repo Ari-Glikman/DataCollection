@@ -105,6 +105,10 @@ $ git clone https://github.com/rcemper/PR_DataCollection.git
 ```
 $ docker compose up -d && docker compose logs -f
 ```
+Container start  
+creates appropriate directory "/home/irisowner/dev/Unit Tests"   
+sets ^UnitTestRoot = "/home/irisowner/dev/"    
+
 To open IRIS Terminal do:
 ```
 $ docker-compose exec iris iris session iris

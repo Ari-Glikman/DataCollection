@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+  <Document name="data-collection.ZPM">
+    <Module>
+      <Name>data-collection</Name>
+      <Version>1.0.1</Version>
+      <Description>guide for creating a task to collect data</Description>
+      <Packaging>module</Packaging>
+      <SourcesRoot>src</SourcesRoot>
+      <Resource Name="Sample.PKG"/>
+    </Module>
+  </Document>
+</Export>

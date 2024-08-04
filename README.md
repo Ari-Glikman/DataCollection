@@ -54,9 +54,10 @@ a. Open the management portal and go to System Operation > Task Manager > New Ta
 
       
       
-You will now be given several fields to fill as to what task you want to create. You will choose the namespace in which you imported the package and give the task a name. A description should be given for future reference. Ideally leave the fast checkbox unselected, this means that the task will run slower but will collect more complete data. If this will take too long to run (depends on how big the database and its globals are) then perhaps it is best to tick here and opt for a faster task. The HowManyGlobals indicates how many globals should be collected: -1 indicates all globals and is the recommended option. Select Next, choose how often the task should run, and click finish.     
+You will now be given several fields to fill as to what task you want to create. You will choose the namespace in which you imported the package and give the task a name. A description should be given for future reference. Ideally leave the fast checkbox unselected, this means that the task will run slower but will collect more complete data. If this will take too long to run (depends on how big the database and its globals are) then perhaps it is best to tick here and opt for a faster task. Select Next, choose how often the task should run, and click finish.     
       
-![Recording 2023-05-10 at 7 10 32 PM](https://github.com/Ari-Glikman/DataCollection/assets/73805987/4c599a91-35be-48a6-941f-8f2631ea318e)
+![image](https://github.com/user-attachments/assets/7006d838-5049-4e13-aea5-e70c9f21c59a)
+
 
 b. You will now be prompted with the Task Schedule where you can see when all tasks, including the newly created one are scheduled to run. If you additionally wish to run it now select Run on the right hand side.
 
